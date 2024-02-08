@@ -88,6 +88,11 @@ function main()
     # used to show stats at the end of the script
     totalEntityCounts = Dict{String,Integer}()
     totalEntityCount = 0
+    totalTriggerCounts = Dict{String,Integer}()
+    totalTriggerCount = 0
+    totalEffectCounts = Dict{String,Integer}()
+    totalEffectCount = 0
+    totalMaps = Dict{String,Any}()
     totalMapCount = 0
     totalModCount = 0
     
@@ -193,11 +198,11 @@ function main()
                 try
                     unzip(modName * ".zip", modName, modName, modOutOfDate)
                 catch
-                    printcolored("ERROR: ", bold=true, color=:red)
+                    printcolored("ERROR: unzipping ", bold=true, color=:red)
                     printcolored("$modName.zip", bold=true, color=:light_blue)
-                    printcolored(" is broken! this is very bad! skipping mod.\n", bold=true, color=:red)
+                    printcolored(" failed! this is very bad! skipping mod.\n", bold=true, color=:red)
                     delete!(mapBinLocationCache, modName)
-                    rm(modName * ".zip")
+                    # rm(modName * ".zip")
                     continue
                 end
                 
@@ -243,50 +248,241 @@ function main()
     for (modName, modFiles) in mapBinLocationCache, file in modFiles
         side = loadSide(file)
         totalMapCount += 1
-        for room in side.map.rooms, entity in room.entities
-            if occursin(helperPrefix, entity.name)
-                totalEntityCount += 1
-                printcolored("[", bold=true, result=true)
-                printcolored("$modName ", bold=true, color=:blue, result=true)
-                printcolored("$file", bold=true, color=:light_cyan, result=true)
-                printcolored("] ", bold=true, result=true)
-                printcolored(entity.name, bold=true, color=:light_green, result=true)
-                printcolored(" found at position ", result=true)
-                printcolored(entity.x, bold=true, color=:light_yellow, result=true)
-                printcolored(",", result=true)
-                printcolored(entity.y, bold=true, color=:light_yellow, result=true)
-                printcolored(" in room ", result=true)
-                printcolored(room.name, bold=true, color=:light_red, result=true)
-                printcolored("!\n", result=true)
+        mapName = replace(file, "$modName/Maps/" => "")
 
-                if !haskey(totalEntityCounts, entity.name)
-                    totalEntityCounts[entity.name] = 0
+        for room in side.map.rooms
+            for entity in room.entities
+                if occursin(helperPrefix, entity.name)
+                    totalEntityCount += 1
+                    if !haskey(totalMaps, mapName)
+                        totalMaps[mapName] = Dict{String,Integer}()
+                    end
+                    if !haskey(totalMaps[mapName], entity.name)
+                        totalMaps[mapName][entity.name] = 0
+                    end
+                    totalMaps[mapName][entity.name] += 1
+
+                    # printcolored("[", bold=true, result=true)
+                    # printcolored("$modName ", bold=true, color=:blue, result=true)
+                    # printcolored("$mapName", bold=true, color=:light_cyan, result=true)
+                    # printcolored("] ", bold=true, result=true)
+                    # printcolored("found ", result=true)
+                    # printcolored(entity.name, bold=true, color=:light_green, result=true)
+                    # printcolored(" at position ", result=true)
+                    # printcolored(entity.x, bold=true, color=:light_yellow, result=true)
+                    # printcolored(",", result=true)
+                    # printcolored(entity.y, bold=true, color=:light_yellow, result=true)
+                    # printcolored(" in room ", result=true)
+                    # printcolored(room.name, bold=true, color=:light_red, result=true)
+                    # printcolored("!\n", result=true)
+
+                    if !haskey(totalEntityCounts, entity.name)
+                        totalEntityCounts[entity.name] = 0
+                    end
+                    totalEntityCounts[entity.name] += 1
                 end
-                totalEntityCounts[entity.name] += 1
             end
+            for trigger in room.triggers
+                if occursin(helperPrefix, trigger.name)
+                    totalTriggerCount += 1
+                    if !haskey(totalMaps, mapName)
+                        totalMaps[mapName] = Dict{String,Integer}()
+                    end
+                    if !haskey(totalMaps[mapName], trigger.name)
+                        totalMaps[mapName][trigger.name] = 0
+                    end
+                    totalMaps[mapName][trigger.name] += 1
+
+                    # printcolored("[", bold=true, result=true)
+                    # printcolored("$modName ", bold=true, color=:blue, result=true)
+                    # printcolored("$mapName", bold=true, color=:light_cyan, result=true)
+                    # printcolored("] ", bold=true, result=true)
+                    # printcolored("found ", result=true)
+                    # printcolored(trigger.name, bold=true, color=:light_green, result=true)
+                    # printcolored(" at position ", result=true)
+                    # printcolored(trigger.x, bold=true, color=:light_yellow, result=true)
+                    # printcolored(",", result=true)
+                    # printcolored(trigger.y, bold=true, color=:light_yellow, result=true)
+                    # printcolored(" in room ", result=true)
+                    # printcolored(room.name, bold=true, color=:light_red, result=true)
+                    # printcolored("!\n", result=true)
+
+                    if !haskey(totalTriggerCounts, trigger.name)
+                        totalTriggerCounts[trigger.name] = 0
+                    end
+                    totalTriggerCounts[trigger.name] += 1
+                end
+            end
+        end
+        for fg in side.map.style.foregrounds
+            if fg isa Effect && occursin(helperPrefix, fg.name)
+                totalEffectCount += 1
+                if !haskey(totalMaps, mapName)
+                    totalMaps[mapName] = Dict{String,Integer}()
+                end
+                if !haskey(totalMaps[mapName], fg.name)
+                    totalMaps[mapName][fg.name] = 0
+                end
+                totalMaps[mapName][fg.name] += 1
+
+                # printcolored("[", bold=true, result=true)
+                # printcolored("$modName ", bold=true, color=:blue, result=true)
+                # printcolored("$mapName", bold=true, color=:light_cyan, result=true)
+                # printcolored("] ", bold=true, result=true)
+                # printcolored("found ", result=true)
+                # printcolored(fg.name, bold=true, color=:light_green, result=true)
+                # printcolored("!\n", result=true)
+
+                if !haskey(totalEffectCounts, fg.name)
+                    totalEffectCounts[fg.name] = 0
+                end
+                totalEffectCounts[fg.name] += 1
+            end
+        end
+        for bg in side.map.style.backgrounds
+            if bg isa Effect && occursin(helperPrefix, bg.name)
+                totalEffectCount += 1
+                if !haskey(totalMaps, mapName)
+                    totalMaps[mapName] = Dict{String,Integer}()
+                end
+                if !haskey(totalMaps[mapName], bg.name)
+                    totalMaps[mapName][bg.name] = 0
+                end
+                totalMaps[mapName][bg.name] += 1
+
+                # printcolored("[", bold=true, result=true)
+                # printcolored("$modName ", bold=true, color=:blue, result=true)
+                # printcolored("$mapName", bold=true, color=:light_cyan, result=true)
+                # printcolored("] ", bold=true, result=true)
+                # printcolored("found ", result=true)
+                # printcolored(bg.name, bold=true, color=:light_green, result=true)
+                # printcolored("!\n", result=true)
+
+                if !haskey(totalEffectCounts, bg.name)
+                    totalEffectCounts[bg.name] = 0
+                end
+                totalEffectCounts[bg.name] += 1
+            end
+        end
+
+        if haskey(totalMaps, mapName)
+            printcolored("[", bold=true, result=true)
+            printcolored("$modName ", bold=true, color=:blue, result=true)
+            printcolored("$mapName", bold=true, color=:light_cyan, result=true)
+            printcolored("] ", bold=true, result=true)
+            printcolored("found ", bold=true, result=true)
+
+            index = 0
+            for (object, count) in totalMaps[mapName]
+                index += 1
+                printcolored("$count ", bold=true, color=:light_yellow, result=true)
+                printcolored("$object", bold=true, color=:light_green, result=true)
+                if index == length(totalMaps[mapName])
+                    printcolored("!\n", bold=true, result=true)
+                elseif index == length(totalMaps[mapName]) - 1
+                    printcolored(" and ", bold=true, result=true)
+                else
+                    printcolored(", ", bold=true, result=true)
+                end
+            end
+            # printcolored("in ", bold=true, result = true)
+            # printcolored("$mapName", bold=true, color=:light_cyan, result=true)
+            # printcolored("!\n", bold=true, result=true)
         end
     end
 
     printcolored("\n", result=true)
 
-    for (entityName, entityCount) in sort(collect(totalEntityCounts), by=last)
-        entityPercent = (entityCount / totalEntityCount) * 100
+    # for (mapName, entities) in totalMaps
+    #     printcolored("[", bold=true, result = true)
+    #     printcolored("$mapName", bold=true, color=:light_cyan, result=true)
+    #     printcolored("] ", bold=true, result=true)
+    #     printcolored("found ", bold=true, result=true)
+    #     for (index, entity) in pairs(entities)
+    #         printcolored("$entity", bold=true, color=:light_green, result=true)
+    #         if index == length(entities)
+    #             printcolored("!\n", bold=true, result=true)
+    #         elseif index == length(entities) - 1
+    #             printcolored(" and ", bold=true, result=true)
+    #         else
+    #             printcolored(", ", bold=true, result=true)
+    #         end
+    #     end
+    #     # printcolored("in ", bold=true, result = true)
+    #     # printcolored("$mapName", bold=true, color=:light_cyan, result=true)
+    #     # printcolored("!\n", bold=true, result=true)
+    # end
+
+    # printcolored("\n", result=true)
+
+    # for (entityName, entityCount) in sort(collect(totalEntityCounts), by=last)
+    #     entityPercent = (entityCount / totalEntityCount) * 100
+    #     printcolored("found ", bold=true, result=true)
+    #     printcolored("$entityCount", bold=true, color=:light_yellow, result=true)
+    #     printcolored(" placements of ", bold=true, result=true)
+    #     printcolored("$entityName", bold=true, color=:blue, result=true)
+    #     printcolored(", accounting for ", bold=true, result=true)
+    #     printcolored(round(entityPercent, digits=4), bold=true, color=:light_cyan, result=true)
+    #     printcolored("% of ", bold=true, result=true)
+    #     printcolored(helperName, bold=true, color=:light_green, result=true)
+    #     printcolored(" entities in maps.\n", bold=true, result=true)
+    # end
+
+    # for (triggerName, triggerCount) in sort(collect(totalTriggerCounts), by=last)
+    #     triggerPercent = (triggerCount / totalTriggerCount) * 100
+    #     printcolored("found ", bold=true, result=true)
+    #     printcolored("$triggerCount", bold=true, color=:light_yellow, result=true)
+    #     printcolored(" placements of ", bold=true, result=true)
+    #     printcolored("$triggerName", bold=true, color=:blue, result=true)
+    #     printcolored(", accounting for ", bold=true, result=true)
+    #     printcolored(round(triggerPercent, digits=4), bold=true, color=:light_cyan, result=true)
+    #     printcolored("% of ", bold=true, result=true)
+    #     printcolored(helperName, bold=true, color=:light_green, result=true)
+    #     printcolored(" triggers in maps.\n", bold=true, result=true)
+    # end
+
+    # for (effectName, effectCount) in sort(collect(totalEffectCounts), by=last)
+    #     effectPercent = (effectCount / totalEffectCount) * 100
+    #     printcolored("found ", bold=true, result=true)
+    #     printcolored("$effectCount", bold=true, color=:light_yellow, result=true)
+    #     printcolored(" uses of ", bold=true, result=true)
+    #     printcolored("$effectName", bold=true, color=:blue, result=true)
+    #     printcolored(", accounting for ", bold=true, result=true)
+    #     printcolored(round(effectPercent, digits=4), bold=true, color=:light_cyan, result=true)
+    #     printcolored("% of ", bold=true, result=true)
+    #     printcolored(helperName, bold=true, color=:light_green, result=true)
+    #     printcolored(" styleground effects in maps.\n", bold=true, result=true)
+    # end
+    totalCounts = Dict{String, Integer}()
+    for (entity, count) in totalEntityCounts
+        totalCounts[entity] = count
+    end
+    for (trigger, count) in totalTriggerCounts
+        totalCounts[trigger] = count
+    end
+    for (effect, count) in totalEffectCounts
+        totalCounts[effect] = count
+    end
+    totalCount = totalEntityCount + totalTriggerCount + totalEffectCount
+
+    for (objectName, objectCount) in sort(collect(totalCounts), by=last)
+        usagePercent = (objectCount / totalCount) * 100
         printcolored("found ", bold=true, result=true)
-        printcolored("$entityCount", bold=true, color=:light_yellow, result=true)
-        printcolored(" placements of ", bold=true, result=true)
-        printcolored("$entityName", bold=true, color=:blue, result=true)
+        printcolored("$objectCount", bold=true, color=:light_yellow, result=true)
+        printcolored(" uses of ", bold=true, result=true)
+        printcolored("$objectName", bold=true, color=:blue, result=true)
         printcolored(", accounting for ", bold=true, result=true)
-        printcolored(round(entityPercent, digits=4), bold=true, color=:light_cyan, result=true)
+        printcolored(round(usagePercent, digits=4), bold=true, color=:light_cyan, result=true)
         printcolored("% of ", bold=true, result=true)
         printcolored(helperName, bold=true, color=:light_green, result=true)
-        printcolored(" entities in maps.\n", bold=true, result=true)
+        printcolored(" things in maps.\n", bold=true, result=true)
     end
 
     printcolored("\n", result=true)
 
     printcolored("total ", bold=true, result=true)
-    printcolored("$totalEntityCount", bold=true, color=:light_green, result=true)
-    printcolored(" entities found in ", bold=true, result=true)
+    printcolored("$totalCount", bold=true, color=:light_green, result=true)
+    printcolored(" things found in ", bold=true, result=true)
     printcolored("$totalMapCount", bold=true, color=:light_cyan, result=true)
     printcolored(" maps across ", bold=true, result=true)
     printcolored("$totalModCount", bold=true, color=:blue, result=true)
